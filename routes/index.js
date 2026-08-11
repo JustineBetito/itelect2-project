@@ -1,5 +1,5 @@
 import express from "express";
-import { createTask } from "../src/utils.js";
+import { createTask, validateTask, mergeTaskUpdate } from "../src/utils.js";
 import { fetchSampleUsers } from "../src/api.js";
 
 const router = express.Router();
@@ -10,13 +10,15 @@ const rawTasks = [
   createTask({ title: "Finish GT5", dueDate: "2026-08-05" }),
 ];
 
-// Force explicit IDs 1, 2, 3
+
 const tasks = rawTasks.map((task, index) => ({
   ...task,
-  id: index + 1, // Forces IDs to be 1, 2, 3
+  id: index + 1,
 }));
 
-// Cache for users fetched at startup
+let nextId = tasks.length + 1; 
+
+
 let cachedUsers = [];
 
 export async function initUsersCache() {
@@ -24,30 +26,76 @@ export async function initUsersCache() {
   console.log(`Cached ${cachedUsers.length} sample users.`);
 }
 
-// GET /api/tasks -> returns array of all tasks
+
 router.get("/tasks", (req, res) => {
   res.json(tasks);
 });
 
-// GET /api/tasks/:id -> returns single task or 404
-router.get("/tasks/:id", (req, res) => {
-  // Use Number() to parse the URL parameter safely
+
+router.get("/tasks/:id", (req, res, next) => {
   const taskId = Number(req.params.id);
-  
-  // Find the task matching the numeric ID
   const task = tasks.find((t) => Number(t.id) === taskId);
 
   if (!task) {
-    return res.status(404).json({ error: "Task not found" });
+    const err = new Error("Task not found");
+    err.status = 404;
+    return next(err);
   }
 
   res.json(task);
 });
 
-// GET /api/users -> returns cached user list
+
 router.get("/users", (req, res) => {
   res.json(cachedUsers);
 });
 
-export default router;
 
+router.post("/tasks", (req, res, next) => {
+  if (!validateTask(req.body)) {
+    const err = new Error("title and dueDate required");
+    err.status = 400;
+    return next(err);
+  }
+
+  const newTask = {
+    id: nextId++,
+    completed: false,
+    ...req.body,
+  };
+
+  tasks.push(newTask);
+  res.status(201).json(newTask);
+});
+
+
+router.put("/tasks/:id", (req, res, next) => {
+  const taskId = Number(req.params.id);
+  const index = tasks.findIndex((t) => Number(t.id) === taskId);
+
+  if (index === -1) {
+    const err = new Error("Task not found");
+    err.status = 404;
+    return next(err);
+  }
+
+  tasks[index] = mergeTaskUpdate(tasks[index], req.body);
+  res.status(200).json(tasks[index]);
+});
+
+
+router.delete("/tasks/:id", (req, res, next) => {
+  const taskId = Number(req.params.id);
+  const index = tasks.findIndex((t) => Number(t.id) === taskId);
+
+  if (index === -1) {
+    const err = new Error("Task not found");
+    err.status = 404;
+    return next(err);
+  }
+
+  const [removed] = tasks.splice(index, 1);
+  res.status(200).json({ message: "Deleted", task: removed });
+});
+
+export default router;

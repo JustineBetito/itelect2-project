@@ -1,13 +1,27 @@
 import express from "express";
+import cors from "cors";
+import morgan from "morgan";
 import router, { initUsersCache } from "./routes/index.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Mount router under /api
+
+app.use(cors());
+app.use(morgan("dev"));
+app.use(express.json());
+
+
 app.use("/api", router);
 
-// Pre-fetch users and start the server
+
+app.use((err, req, res, next) => {
+  console.error(err.message);
+  const status = err.status || 500;
+  res.status(status).json({ error: err.message });
+});
+
+
 async function startServer() {
   try {
     await initUsersCache();
@@ -20,5 +34,5 @@ async function startServer() {
   }
 }
 
-// Call startServer to launch the application
+
 startServer();
