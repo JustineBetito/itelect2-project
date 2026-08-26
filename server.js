@@ -1,38 +1,31 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
-import router, { initUsersCache } from "./routes/index.js";
+import router from "./routes/index.js";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 
-
 app.use("/api", router);
 
-
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.message);
+
+  // Catch Sequelize validation errors and send 400 Bad Request
+  if (err.name === "SequelizeValidationError") {
+    return res.status(400).json({ error: err.errors.map((e) => e.message) });
+  }
+
   const status = err.status || 500;
   res.status(status).json({ error: err.message });
 });
 
-
-async function startServer() {
-  try {
-    await initUsersCache();
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (err) {
-    console.error("Failed to start server:", err.message);
-  }
-}
-
-
-startServer();
+// Start server directly without initUsersCache
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
