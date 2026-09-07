@@ -11,6 +11,9 @@ console.log(mergeTaskUpdate({ title: "Old" }, { title: "New" }));
 
 //finals
 
+
+//finals(2)
+// another comment
 async function main() {
   try {
     const users = await fetchSampleUsers();
