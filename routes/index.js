@@ -1,58 +1,34 @@
 import express from "express";
 import db from "../models/index.cjs";
+import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 
 const { Task, User } = db;
 const router = express.Router();
 
-// 1. GET /api/tasks -> Returns all tasks with their owning User (JOIN query)
+// Public route test
+router.get("/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+// Protect all task endpoints below with JWT authentication
+router.use(authenticateToken);
+
+// GET /api/tasks (Returns tasks)
 router.get("/tasks", async (req, res) => {
-  const tasks = await Task.findAll({
-    include: User,
-    order: [["id", "ASC"]]
-  });
+  const tasks = await Task.findAll();
   res.json(tasks);
 });
 
-// 2. GET /api/tasks/:id -> Returns one task by ID with its owning User
-router.get("/tasks/:id", async (req, res) => {
-  const task = await Task.findByPk(req.params.id, { include: User });
-  if (!task) {
-    return res.status(404).json({ error: "Task not found" });
-  }
-  res.json(task);
-});
-
-// 3. POST /api/tasks -> Creates a new task in PostgreSQL
+// POST /api/tasks (Create a task)
 router.post("/tasks", async (req, res) => {
-  const task = await Task.create(req.body);
+  const { title, completed } = req.body;
+  const task = await Task.create({ title, completed });
   res.status(201).json(task);
 });
 
-// 4. PUT /api/tasks/:id -> Updates an existing task
-router.put("/tasks/:id", async (req, res) => {
-  const task = await Task.findByPk(req.params.id);
-  if (!task) {
-    return res.status(404).json({ error: "Task not found" });
-  }
-  await task.update(req.body);
-  res.json(task);
-});
-
-// 5. DELETE /api/tasks/:id -> Deletes a task by ID
-router.delete("/tasks/:id", async (req, res) => {
-  const task = await Task.findByPk(req.params.id);
-  if (!task) {
-    return res.status(404).json({ error: "Task not found" });
-  }
-  await task.destroy();
-  res.json({ message: "Deleted", task });
-});
-
-// 6. GET /api/users -> Returns all users from PostgreSQL
-router.get("/users", async (req, res) => {
-  const users = await User.findAll({
-    order: [["id", "ASC"]]
-  });
+// Example Admin-Only Route
+router.get("/admin/users", requireAdmin, async (req, res) => {
+  const users = await User.findAll();
   res.json(users);
 });
 
