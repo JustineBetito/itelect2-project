@@ -1,26 +1,46 @@
 'use strict';
-const {
-  Model
-} = require('sequelize');
+const { Model } = require('sequelize');
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      // define association here
+      // Session 9: User associations go here if needed
+    }
 
-      User.hasMany(models.Task, { foreignKey: 'userId' });
+    // Ensures password is NEVER returned in API responses
+    toJSON() {
+      const values = { ...this.get() };
+      delete values.password;
+      return values;
     }
   }
+
   User.init({
-    name: DataTypes.STRING,
-    email: DataTypes.STRING
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        notEmpty: { msg: 'email is required' },
+        isEmail: { msg: 'email must look like an email address' }
+      }
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notEmpty: { msg: 'password is required' }
+      }
+    },
+    role: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'member'
+    }
   }, {
     sequelize,
     modelName: 'User',
   });
+
   return User;
 };
