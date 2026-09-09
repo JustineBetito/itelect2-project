@@ -17,3 +17,10 @@ My IT Elective 2 backend web development project.
 ![GET USERS](images/Session8_GET_API_USERS.png)
 ![POST TASKS](images/Session8_POST_TASKS.png)
 ![DELETE TASKS ID](images/Session8_DELETE_TASKS_ID.png)
+
+## Module4_Session9 Screenshots
+
+![SUCCESSFUL_REGISTRATION](images/Successful%20Registration%20(POST%20apiauthregister).png)
+![SUCCESSFUL_LOGIN](images/Successful%20Login%20(POST%20apiauthlogin).png)
+![AUTHORIZED_ACCESS](images/Authorized%20Access%20(GET%20apitasks%20With%20Token).png)
+
