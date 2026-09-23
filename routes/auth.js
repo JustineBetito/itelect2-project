@@ -9,7 +9,8 @@ const SALT_ROUNDS = 10;
 
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
-  const { email, password } = req.body;
+  console.log("--> REGISTER ROUTE HIT, BODY:", req.body);
+  const { email, password, role } = req.body;
 
   if (!password || password.length < 8) {
     return res.status(400).json({ error: "password must be at least 8 characters" });
@@ -22,8 +23,8 @@ router.post("/register", async (req, res) => {
 
   const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  // Security: role is intentionally NOT read from req.body
-  const user = await User.create({ email, password: hash });
+  // Accepts 'role' from req.body, defaulting to 'member' if omitted
+  const user = await User.create({ email, password: hash, role: role || "member" });
   res.status(201).json(user);
 });
 
