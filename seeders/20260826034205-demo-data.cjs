@@ -3,31 +3,33 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up (queryInterface, Sequelize) {
-   const now = new Date();
+    const now = new Date();
 
-    // 1. Insert Users first
+    // 1. Insert Users matching the Users table schema
     await queryInterface.bulkInsert('Users', [
       {
-        name: 'Alice Johnson',
         email: 'alice@example.com',
+        password: 'hashed_password_here',
+        role: 'member',
         createdAt: now,
         updatedAt: now
       },
       {
-        name: 'Bob Smith',
         email: 'bob@example.com',
+        password: 'hashed_password_here',
+        role: 'member',
         createdAt: now,
         updatedAt: now
       }
     ]);
 
-    // 2. Fetch generated user IDs from PostgreSQL
+    // 2. Fetch generated user IDs using email
     const users = await queryInterface.sequelize.query(
-      'SELECT id, name FROM "Users";',
+      'SELECT id, email FROM "Users";',
       { type: Sequelize.QueryTypes.SELECT }
     );
 
-    const idOf = (name) => users.find((u) => u.name === name).id;
+    const idOf = (email) => users.find((u) => u.email === email).id;
 
     // 3. Insert Tasks linked dynamically to those user IDs
     await queryInterface.bulkInsert('Tasks', [
@@ -35,7 +37,7 @@ module.exports = {
         title: 'Complete GT8 Setup',
         dueDate: new Date('2026-08-26'),
         completed: false,
-        userId: idOf('Alice Johnson'),
+        userId: idOf('alice@example.com'),
         createdAt: now,
         updatedAt: now
       },
@@ -43,7 +45,7 @@ module.exports = {
         title: 'Review Express Routes',
         dueDate: new Date('2026-08-27'),
         completed: true,
-        userId: idOf('Alice Johnson'),
+        userId: idOf('alice@example.com'),
         createdAt: now,
         updatedAt: now
       },
@@ -51,7 +53,7 @@ module.exports = {
         title: 'Test PostgreSQL Integration',
         dueDate: new Date('2026-08-28'),
         completed: false,
-        userId: idOf('Bob Smith'),
+        userId: idOf('bob@example.com'),
         createdAt: now,
         updatedAt: now
       }

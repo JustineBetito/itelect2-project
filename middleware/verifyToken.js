@@ -1,27 +1,17 @@
 import jwt from "jsonwebtoken";
 
 export default function verifyToken(req, res, next) {
-  const header = req.headers.authorization;
-
-  if (!header || !header.startsWith("Bearer ")) {
-    return res.status(401).json({
-      error: "No token. Send Authorization: Bearer <token>",
-    });
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ error: "No token provided" });
   }
 
-  const token = header.split(" ")[1];
-
+  const token = authHeader.split(" ")[1];
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET, {
-      algorithms: ["HS256"],
-    });
-    req.user = payload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded; // Attach decoded token ({ id, email, role })
     next();
   } catch (err) {
-    const message =
-      err.name === "TokenExpiredError"
-        ? "Token has expired. Log in again"
-        : "Token is invalid";
-    return res.status(401).json({ error: message });
+    return res.status(403).json({ error: "Invalid or expired token" });
   }
 }
