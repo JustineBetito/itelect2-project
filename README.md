@@ -46,3 +46,12 @@ My IT Elective 2 backend web development project.
 | **Test Case 3** | `DELETE /api/tasks/:id` | Bearer Token (`admin`) | `200 OK` / `204 No Content` | PASSED |
 
 ![Test Case 3](images/image8.png)
+
+
+## Session12
+
+## Live URL
+https://itelect2-task-app.onrender.com
+
+
+![Live app](images/deployed%20app.png)
